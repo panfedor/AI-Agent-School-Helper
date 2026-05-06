@@ -1,0 +1,262 @@
+{
+  "name": "Task_4",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 10
+            }
+          ]
+        }
+      },
+      "name": "Cron Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        304
+      ],
+      "id": "72c0117c-01ae-4702-82ae-6fa16e7b7ff3"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "direction",
+              "value": "Python разработчик"
+            },
+            {
+              "name": "area",
+              "value": "1"
+            },
+            {
+              "name": "per_page",
+              "value": "10"
+            },
+            {
+              "name": "telegram_chat_id",
+              "value": "REPLACE_WITH_YOUR_CHANNEL_CHAT_ID"
+            },
+            {
+              "name": "dev_mode",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        304
+      ],
+      "id": "a67eb846-7e27-497c-a2e6-7eaed99b1696"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hh.ru/vacancies?text={{$json.direction}}&area={{$json.area}}&per_page={{$json.per_page}}&page=0",
+        "jsonParameters": true,
+        "options": {},
+        "headerParametersJson": "[]"
+      },
+      "name": "Fetch Vacancies (HH)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        304
+      ],
+      "id": "321fba10-df45-4135-ba54-609fd2391046"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Код для ноды Prepare Vacancies (Function)\n\nconst input = items[0] && items[0].json ? items[0].json : {};\nlet body = input.body || input.response || input.data || input;\n\n// Если пришла строка, парсим\nif (typeof body === 'string') {\n  try { body = JSON.parse(body); } catch (e) { body = {}; }\n}\n\n// Достаем массив вакансий\nconst itemsArr = Array.isArray(body.items) ? body.items : (Array.isArray(body.vacancies) ? body.vacancies : []);\n\n// Берем только 3 шт (или сколько указано в limit)\nconst limit = Math.min(10, Number(items[0]?.json?.per_page || 10));\nconst sliced = itemsArr.slice(0, limit);\n\n// Функция очистки текста\nfunction cleanText(s) {\n  if (!s || typeof s !== 'string') return '';\n  return s\n    .replace(/<highlighttext[^>]*>([\\s\\S]*?)<\\/highlighttext>/gi, '$1')\n    .replace(/<[^>]+>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\n// Формируем единый текстовый контекст + список ссылок\nlet fullText = \"\";\nlet linksBlock = \"\\n=== СПИСОК ССЫЛОК ДЛЯ ОТЧЕТА ===\\n\";\n\nsliced.forEach((v, index) => {\n  const name = cleanText(v.name);\n  const url = v.alternate_url || v.url || \"Нет ссылки\";\n  // Формируем описание\n  const desc = cleanText(v.description || (v.snippet ? (v.snippet.requirement + \" \" + v.snippet.responsibility) : \"\"));\n  \n  fullText += `--- ВАКАНСИЯ №${index + 1}: ${name} ---\\n`;\n  fullText += `${desc}\\n\\n`;\n  \n  // Добавляем в блок ссылок\n  linksBlock += `${index + 1}. ${name} - ${url}\\n`;\n});\n\n// Склеиваем всё вместе\nfullText += linksBlock;\n\n// Если вакансий нет\nif (!fullText.trim()) fullText = \"Вакансий не найдено.\";\n\n// Возвращаем ОДИН элемент\nreturn [{\n  json: {\n    input_text_for_ai: fullText,\n    vacancies_count: sliced.length\n  }\n}];"
+      },
+      "name": "Prepare Vacancies (Text+Links)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        304
+      ],
+      "id": "0a73c9a9-3c67-4744-8698-9f97c2191e99"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "GigaChat/GigaChat-2-Max",
+          "mode": "list",
+          "cachedResultName": "GigaChat/GigaChat-2-Max"
+        },
+        "options": {
+          "maxRetries": 3
+        }
+      },
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -320,
+        512
+      ],
+      "id": "2155d7ee-7e09-4bd6-a639-c9726efc2dd7",
+      "credentials": {
+        "openAiApi": {
+          "id": "DQHuLa89ZMlhe8Y6",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.input_text_for_ai }}",
+        "options": {
+          "systemMessage": "Ты — профессиональный аналитик рынка труда. Твоя задача — прочитать текст с описаниями вакансий, выделить топ технических навыков (Hard Skills) и оформить красивый, читаемый отчет.\n\nВходные данные: Текст с описаниями вакансий и списком ссылок в конце.\n\nТвоя цель — вернуть СТРОГО JSON объект:\n{\n  \"digest_text\": \"Текст сообщения...\"\n}\n\nТребования к оформлению поля \"digest_text\" (используй Markdown):\n\n1. Вступление:\nНачни с заголовка (жирным): \"📊 **Еженедельный дайджест вакансий**\"\nДалее с новой строки: \"Я проанализировал **N свежих вакансий** по твоему направлению. Вот что сейчас востребовано:\"\n\n2. Блок навыков (Топ-15):\nИспользуй заголовок: \"🔥 **Топ требований:**\"\nДля каждого пункта используй маркер 🔹.\nСам навык выделяй **жирным**.\nКоличество упоминаний пиши _курсивом_.\nДобавляй контекстные слова (\"Знание\", \"Опыт с\", \"Уверенное владение\").\nПример формата: \n🔹 Знание **Python**: _3 раза_\n🔹 Опыт работы с **Docker**: _2 раза_\n\n3. Блок ссылок:\nИспользуй заголовок: \"🔗 **Ссылки на вакансии:**\"\nПеречисли вакансии списком. Название вакансии сделай **жирным**.\nПример формата:\n• **Backend Developer** — https://hh.ru/...\n\n4. Общие правила:\n- Сортируй навыки по убыванию.\n- Игнорируй софт-скиллы.\n- Нормализуй названия (питон -> Python).\n- В ОТВЕТЕ ВЕРНИ ТОЛЬКО JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        304
+      ],
+      "id": "5e28ae6f-35a3-4c20-a69f-84394810817d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Парсим ответ от AI\nconst output = items[0].json.output || items[0].json.text || \"\";\nlet parsed = {};\n\ntry {\n  if (typeof output === 'string') {\n     const cleanJson = output.replace(/```json/g, '').replace(/```/g, '').trim();\n     parsed = JSON.parse(cleanJson);\n  } else {\n     parsed = output;\n  }\n} catch (e) {\n  return [{ json: { digest_text: output } }];\n}\n\nreturn [{ json: { digest_text: parsed.digest_text || \"Не удалось сформировать дайджест.\" } }];"
+      },
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        80,
+        304
+      ],
+      "id": "421f5e70-365a-47fd-97de-a26df1adeeaf"
+    },
+    {
+      "parameters": {
+        "chatId": "405671643",
+        "text": "={{ $json.digest_text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "name": "Send Digest to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        304
+      ],
+      "id": "2c3ef80e-6420-4042-8d8a-5c901cbc17e7",
+      "webhookId": "659b3721-e580-4941-88c2-9e53222a85e6",
+      "credentials": {
+        "telegramApi": {
+          "id": "4k2w1stsW4rKojON",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Parameters": {
+      "main": [
+        [
+          {
+            "node": "Fetch Vacancies (HH)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Vacancies (HH)": {
+      "main": [
+        [
+          {
+            "node": "Prepare Vacancies (Text+Links)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Send Digest to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Vacancies (Text+Links)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "aeac1e00-c26d-46d3-8e49-4fd9fcf20163",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed7312212a96bde58f7b4bcf2b58cb88d4fd3246394e1193159b0d92ea882fc9"
+  },
+  "id": "3un8p6RyiQcVdeYZ",
+  "tags": []
+}

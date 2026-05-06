@@ -1,0 +1,478 @@
+{
+  "name": "Task_3",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://fetchrss.com/feed/1vPjVJBNYGIM1vPlxyFHd0NG.rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        176
+      ],
+      "id": "91ed9334-b9f6-4ec7-9a51-80e13ea62d97",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "url": "https://fetchrss.com/feed/1vPjVJBNYGIM1vPjX82alGwc.rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        304
+      ],
+      "id": "1ebf854d-7296-4431-96de-ee7388087c63",
+      "name": "RSS Read1"
+    },
+    {
+      "parameters": {
+        "url": "https://fetchrss.com/feed/1vPjVJBNYGIM1vPjYT3NRGmI.rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        432
+      ],
+      "id": "57d4ec88-94ff-4c9d-b685-ae005a437c5a",
+      "name": "RSS Read2"
+    },
+    {
+      "parameters": {
+        "maxItems": 15
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        800,
+        176
+      ],
+      "id": "4392599b-54ca-4c60-9a74-8f8a443182a4",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "maxItems": 15
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        800,
+        304
+      ],
+      "id": "9754dcb4-2bf1-4f66-a1c9-e4a5880901ea",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "maxItems": 15
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        800,
+        432
+      ],
+      "id": "ac4cac4b-2560-4644-a701-188bdb0acfb8",
+      "name": "Limit2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c84911bc-567a-42cc-9a51-258dac5782c8",
+              "name": "channelName",
+              "value": "=Школа 21",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "contentSnippet",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        176
+      ],
+      "id": "696c1bf9-0f50-4a2c-8a32-35dbbdb75724",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ee57f57e-7702-4760-b9ec-4b1cc2a0f0b6",
+              "name": "channelName",
+              "value": "=Python Developer",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "contentSnippet",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        304
+      ],
+      "id": "5b5003e5-aa4b-46a0-b4d5-4c77a5a8805f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ee57f57e-7702-4760-b9ec-4b1cc2a0f0b6",
+              "name": "channelName",
+              "value": "=Python | LeetCode",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "contentSnippet",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        432
+      ],
+      "id": "ab03c7a8-b651-48dc-a1b2-71d3250a99c3",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1232,
+        288
+      ],
+      "id": "e8729a73-ac7d-4739-b577-17a340e36e24",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        304
+      ],
+      "id": "f84b3311-02a4-46a9-ae3e-e58d43d2f7ca",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt_text }}\n\nТы — строгий технический редактор для Telegram-канала. Твоя задача — создать идеальный дайджест из сырых постов.\n\n🚫 ЧТО НУЖНО УДАЛИТЬ (ЖЕСТКИЙ ФИЛЬТР):\n1. Любую рекламу (курсы, \"подпишись на канал\", \"залетаем сюда\", Переход в другие каналы или приложения, devsp).\n2. Мусорные фразы (\"Feed generated...\", хештеги, \"ставь лайк\").\n3. Посты, состоящие только из картинки/видео без текста.\n4. Посты-мемы без полезной смысловой нагрузки.\n\n🎨 ПРАВИЛА ОФОРМЛЕНИЯ (TELEGRAM HTML):\n1. Используй ТОЛЬКО поддерживаемые теги: <b>, <i>, <code>, <a href=\"...\">.\n2. Если в тексте встречается код, название функции, класс или команда — ОБЯЗАТЕЛЬНО оборачивай их в тег <code> (например: <code>print()</code>, <code>Solution</code>).\n3. Если пост содержит задачу с LeetCode, оформляй её так:\n   <i>Задача:</i> <b>Название</b> — суть условия.\n   <i>Решение:</i> <code>код решения (только если он короткий, до 1 строки)</code> или \"Решение на Python\".\n\n📋 СТРУКТУРА СООБЩЕНИЯ:\n\n<b>📊 Дайджест за {{ $now.toFormat('dd.MM.yyyy') }}</b>\n\n<b>Общее саммари</b>\n(Один абзац. Суть главных новостей и тем. Без воды.)\n\n━━━━━━━━━━━━━━━━━\n\n(Группируй по каналам. Если канал пустой после фильтрации — не показывай его.)\n\n<b>Название канала (кол-во постов)</b>\n\n• <b>Заголовок новости/Суть</b>\nКраткое описание (1-2 предложения). Если есть ключевые технические термины, выделяй их <code>кодом</code>.\n<a href=\"ССЫЛКА_НА_ПОСТ_ЕСЛИ_ЕСТЬ\">Читать полностью</a>\n\n• <b>Задача: Two Sum</b>\nНайти два числа, сумма которых равна цели.\n<i>Решение:</i> использует <code>HashMap</code> для поиска за O(n).\n\n(Между каналами делай пустую строку)\n\n<b>Название следующего канала (кол-во постов)</b>\n\n• <b>Заголовок новости</b>\nОписание...\n\n-------------------\nВАЖНО:\n- Не используй Markdown (**bold**, `code`). Только HTML (< b >, < code >).\n- Не используй теги <p>, <div>, <br> (делай переносы строки обычным Enter).\n- Не пиши вступлений и заключений. Выводи только готовый HTML.\n\nНАЧИНАЙ ГЕНЕРАЦИЮ:",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1776,
+        304
+      ],
+      "id": "59bb77d2-1103-4363-8a22-3c7872703314",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "GigaChat/GigaChat-2-Max",
+          "mode": "list",
+          "cachedResultName": "GigaChat/GigaChat-2-Max"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1776,
+        512
+      ],
+      "id": "fb14108c-2686-44b2-8533-5ebed3631ca1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "DQHuLa89ZMlhe8Y6",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "-1003419874943",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        304
+      ],
+      "id": "ccc57be5-2df6-45b4-af21-79bcd7c66130",
+      "name": "Send a text message",
+      "webhookId": "24338b4b-b70d-4e28-a0e1-3a7e57a78b00",
+      "credentials": {
+        "telegramApi": {
+          "id": "4k2w1stsW4rKojON",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем входные данные\nconst items = $input.all();\nconst dataArray = items[0].json.data || [];\n\n// Создаем текстовый буфер\nlet textForAI = \"Вот список постов для дайджеста:\\n\\n\";\n\n// Проходимся по каждому посту и добавляем его в текст\ndataArray.forEach((item, index) => {\n  // Очищаем текст от лишнего (FetchRSS и HTML теги, если есть)\n  let cleanText = item.contentSnippet\n    .replace('(Feed generated with FetchRSS)', '')\n    .trim();\n    \n  textForAI += `--- ПОСТ #${index + 1} ---\\n`;\n  textForAI += `КАНАЛ: ${item.channelName}\\n`;\n  textForAI += `ТЕКСТ: ${cleanText}\\n\\n`;\n});\n\ntextForAI += \"Конец списка постов.\";\n\n// Возвращаем результат в простом формате\nreturn [{\n  json: {\n    prompt_text: textForAI\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        304
+      ],
+      "id": "3bac8633-018a-44c0-b86d-c6751d05cb12",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 10
+            }
+          ]
+        }
+      },
+      "name": "Cron Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        416,
+        304
+      ],
+      "id": "b2a303df-05e9-42bc-bb2b-454dc6af69b1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read1": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read2": {
+      "main": [
+        [
+          {
+            "node": "Limit2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d0c3be24-ccd6-4b85-9009-45b026ea63e8",
+  "meta": {
+    "instanceId": "ed7312212a96bde58f7b4bcf2b58cb88d4fd3246394e1193159b0d92ea882fc9"
+  },
+  "id": "QjiaPEYjyBKYxNwV",
+  "tags": []
+}

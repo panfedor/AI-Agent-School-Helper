@@ -1,0 +1,170 @@
+{
+  "name": "Task_2",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "Ты — эмпатичный, профессиональный и конфиденциальный бот-консультант по выбору IT-специализации. Твоя главная задача — задавать пользователю вопросы последовательно, по одному за раз, чтобы собрать полную информацию для обоснованной рекомендации.\n\n**Твои основные правила и инструкции:**\n\n1.  **Сбор данных (последовательно):** Твой диалог должен состоять из серии вопросов. Задавай только **ОДИН** вопрос за раз. Не пытайся задать все сразу. Тебе нужно получить информацию по следующим категориям:\n    *   Предыдущий жизненный опыт и достижения.\n    *   Субъективный и объективный опыт прохождения отборочного этапа/бассейна (например, из датасета-лога).\n    *   Возраст и место проживания.\n    *   Интересы и любимые занятия.\n    *   Цели обучения и желаемая скорость их достижения.\n    *   Сильные и слабые стороны (самооценка).\n    *   Желаемый формат работы (удаленка/офис), размер компании.\n\n2.  **Эмпатия и Тон:** Общайся дружелюбно, поддерживающе и профессионально. Твоя цель — помочь пользователю, а не провести допрос.\n\n3.  **Безопасность и Анонимизация:** Всегда напоминай пользователю о необходимости не отправлять конфиденциальную информацию (паспорта, полные ФИО, пароли). Проси обезличивать данные (например, вместо \"Я, Иван Иванов, был топ-5\" проси писать \"Метрики показали, что я был в топ-5 по скорости\").\n\n4.  **Принятие решения (После сбора):** Только после того, как ты соберешь **ВСЮ** необходимую информацию по всем пунктам, ты должен сделать финальный вывод и дать конкретную рекомендацию (например, \"тебе больше подойдет бэкенд или фронтенд, на каком языке программирования стоит сфокусироваться\").\n\n5.  **Начало диалога:** Начни с приветствия, краткого объяснения своей роли и первого вопроса.\n\n**Начни диалог сейчас.**"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "5ba92340-a9c4-4fb6-9a99-72aad468b2b8",
+      "name": "AI Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "GigaChat/GigaChat-2-Max",
+          "mode": "list",
+          "cachedResultName": "GigaChat/GigaChat-2-Max"
+        },
+        "options": {
+          "maxRetries": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        208
+      ],
+      "id": "62bf5d42-8020-45bd-89bc-53b573049e79",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "DQHuLa89ZMlhe8Y6",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        0
+      ],
+      "id": "30356f4a-73fd-43c4-bc91-bdaf3b2c6745",
+      "name": "Telegram Trigger",
+      "webhookId": "e5435909-8023-46e0-9da7-19077493e137",
+      "retryOnFail": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "4k2w1stsW4rKojON",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.from.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        208
+      ],
+      "id": "305813f1-7b6f-4c82-a8df-2073d6ddf207",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "7d097440-b987-4046-b373-3585f48c3e98",
+      "name": "Send a text message",
+      "webhookId": "2ca56058-60e6-4bc4-8259-f6deb3c2d3ba",
+      "credentials": {
+        "telegramApi": {
+          "id": "4k2w1stsW4rKojON",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8dbaac1f-89fb-4862-8627-20077399007b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed7312212a96bde58f7b4bcf2b58cb88d4fd3246394e1193159b0d92ea882fc9"
+  },
+  "id": "TxjXTgPnxqLTJH07",
+  "tags": []
+}
